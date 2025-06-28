@@ -3,6 +3,7 @@ import pandas as pd
 from docx import Document
 from docx.shared import Inches
 import os
+import shutil
 
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
@@ -14,13 +15,16 @@ os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
     if request.method == 'POST':
+        clean_folder(UPLOAD_FOLDER)
+        clean_folder(OUTPUT_FOLDER)
+
         file = request.files['file']
         filepath = os.path.join(UPLOAD_FOLDER, file.filename)
         file.save(filepath)
         
         # Process the Excel and generate Word files
         generate_docs(filepath)
-        return "Files generated! Check the 'outputs' folder."
+        return render_template("results.html", files=filenames)
 
     return render_template('index.html')
 
@@ -29,6 +33,7 @@ def generate_docs(excel_path):
     columns = df.columns
     rooms = ["LIVING ROOM", "BEDROOM", "KITCHEN", "STORAGE"]
     data = df.values
+    filenames = []
 
     for j in range(len(data)):
         doc = Document()
@@ -49,12 +54,27 @@ def generate_docs(excel_path):
                 if os.path.exists(img_path):
                     doc.add_picture(img_path)
 
-        output_path = os.path.join(OUTPUT_FOLDER, f"claim_{j}.docx")
+        filename = f"claim_{j}.docx"
+        output_path = os.path.join(OUTPUT_FOLDER, filename)
         doc.save(output_path)
+        filenames.append(filename)
 
-@app.route('/outputs/<filename>')
+    return filenames
+
+def clean_folder(folder_path):
+    for filename in os.listdir(folder_path):
+        file_path = os.path.join(folder_path, filename)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)  # remove file or symbolic link
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)  # remove sub-directory
+        except Exception as e:
+            print(f"Failed to delete {file_path}. Reason: {e}")
+
+@app.route('/download/<filename>')
 def download_file(filename):
-    return send_from_directory(OUTPUT_FOLDER, filename)
+    return send_from_directory(OUTPUT_FOLDER, filename, as_attachment=True)
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
