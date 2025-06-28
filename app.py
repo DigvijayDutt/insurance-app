@@ -24,7 +24,7 @@ def upload_file():
         
         # Process the Excel and generate Word files
         filenames = generate_docs(filepath)
-        return render_template("results.html", files=filenames)
+        return render_template("result.html", files=filenames)
 
     return render_template('index.html')
 
