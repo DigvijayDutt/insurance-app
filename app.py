@@ -32,13 +32,32 @@ def generate_docs(excel_path):
     df = pd.read_excel(excel_path)
     columns = df.columns
     rooms = ["LIVING ROOM", "BEDROOM", "KITCHEN", "STORAGE"]
+
+    image_paths = [
+        './static/images/LIVING ROOM/1.jpg',
+        './static/images/LIVING ROOM/2.jpg',
+        './static/images/LIVING ROOM/3.jpg',
+        './static/images/LIVING ROOM/4.jpg',
+        './static/images/BEDROOM/1.jpg',
+        './static/images/BEDROOM/2.jpg',
+        './static/images/BEDROOM/3.jpg',
+        './static/images/BEDROOM/4.jpg',
+        './static/images/KITCHEN/1.jpg',
+        './static/images/KITCHEN/2.jpg',
+        './static/images/KITCHEN/3.jpg',
+        './static/images/KITCHEN/4.jpg',
+        './static/images/STORAGE/1.jpg',
+        './static/images/STORAGE/2.jpg',
+        './static/images/STORAGE/3.jpg',
+        './static/images/STORAGE/4.jpg'
+    ]
+    img_idx = 0
+
     data = df.values
     filenames = []
 
     for j in range(len(data)):
-        doc = Document()
-        doc.add_picture("./static/logo.jpg", width=Inches(1.25))
-        doc.add_paragraph("www.trinitycontents.com")
+        doc = Document("./templates/template.docx")
         doc.add_heading("FIRST INSPECTION REPORT", level=1)
         doc.add_picture("./static/home.jpg", width=Inches(2.5))
 
@@ -49,10 +68,17 @@ def generate_docs(excel_path):
         doc.add_heading("PHOTOGRAPHS", level=2)
         for room in rooms:
             doc.add_heading(room, level=3)
-            for l in range(1, 5):
-                img_path = f"./static/images/{room}/{l}.jpg"
-                if os.path.exists(img_path):
-                    doc.add_picture(img_path)
+            table = doc.add_table(rows=2, cols = 2)
+            table.autofit = True
+            for l in range(2):
+                row_cells = table.rows[l].cells
+                for m in range(2):
+                    if img_idx < len(image_paths):
+                        cell = row_cells[m]
+                        p = cell.paragraphs[0]
+                        run = p.add_run()
+                        run.add_picture(image_paths[img_idx], width= Inches(2) ,height=Inches(2.5))
+                        img_idx += 1
 
         filename = f"claim_{j}.docx"
         output_path = os.path.join(OUTPUT_FOLDER, filename)
