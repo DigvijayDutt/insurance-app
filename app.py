@@ -18,39 +18,32 @@ def upload_file():
         clean_folder(UPLOAD_FOLDER)
         clean_folder(OUTPUT_FOLDER)
 
-        file = request.files['file']
+        file = request.files['data']
+        images = request.files.getlist('images')
+
         filepath = os.path.join(UPLOAD_FOLDER, file.filename)
         file.save(filepath)
-        
+
+        img_path = []
+
+        for img in images:
+            save_path  = os.path.join(UPLOAD_FOLDER, img.filename)
+            img_path.append(save_path)
+            os.makedirs(os.path.dirname(save_path), exist_ok=True)
+            img.save(save_path)
         # Process the Excel and generate Word files
-        filenames = generate_docs(filepath)
+        print(img_path)
+        filenames = generate_docs(filepath, img_path)
         return render_template("result.html", files=filenames)
 
     return render_template('index.html')
 
-def generate_docs(excel_path):
+def generate_docs(excel_path, image_path):
     df = pd.read_excel(excel_path)
     columns = df.columns
     rooms = ["LIVING ROOM", "BEDROOM", "KITCHEN", "STORAGE"]
 
-    image_paths = [
-        './static/images/LIVING ROOM/1.jpg',
-        './static/images/LIVING ROOM/2.jpg',
-        './static/images/LIVING ROOM/3.jpg',
-        './static/images/LIVING ROOM/4.jpg',
-        './static/images/BEDROOM/1.jpg',
-        './static/images/BEDROOM/2.jpg',
-        './static/images/BEDROOM/3.jpg',
-        './static/images/BEDROOM/4.jpg',
-        './static/images/KITCHEN/1.jpg',
-        './static/images/KITCHEN/2.jpg',
-        './static/images/KITCHEN/3.jpg',
-        './static/images/KITCHEN/4.jpg',
-        './static/images/STORAGE/1.jpg',
-        './static/images/STORAGE/2.jpg',
-        './static/images/STORAGE/3.jpg',
-        './static/images/STORAGE/4.jpg'
-    ]
+    image_paths = image_path
     img_idx = 0
 
     data = df.values
