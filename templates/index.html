@@ -6,7 +6,9 @@
 <body>
     <h2>Upload Insurance Claims Excel</h2>
     <form action="/" method="post" enctype="multipart/form-data">
+        <label for="data">Excel upload</label>
         <input type="file" name="data">
+        <label for="images">Image folder upload</label>
         <input type="file" name="images" webkitdirectory directory multiple>
         <input type="submit" value="Generate Reports">
     </form>
